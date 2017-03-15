@@ -45,10 +45,8 @@ td{
 <tr><td class="T7">-</td><td class="T8">-</td><td class="T9">-</td></tr>
 </table>
 
-<div id="game_begin">游戏开始</div>
-<div id="game_help">游戏帮助</div>
-<div id="game_pp">双人游戏</div>
-<div id="game_pc">人机对战</div>
+<div id="game_undo">undo</div>
+<div id="game_reset">reset</div>
 <script>
 function TicTacToe(){
 	this.init();
@@ -78,10 +76,21 @@ TicTacToe.prototype.freshBoard= function(){
 		[null,null,null]
 	];
 }
+TicTacToe.prototype.reset= function(){
+	this.init();
+}
+TicTacToe.prototype.undo = function(){
+	if(this.state.length>0){
+		this.state.pop();
+	}else
+	{
+		this.init();
+	}
+	console.log(this.state);
+}
 TicTacToe.prototype.isValidTurn = function(x,y){
 	var state = this.getCurrentState();
 	var currentBoard = state.currentBoard;
-	console.log(state);
 	if(currentBoard[x][y] != null)
 	{
 		return false;
@@ -107,22 +116,74 @@ TicTacToe.prototype.takeTurn= function(x,y){
 	var state = this.getCurrentState();
 	var valid = false;
 	var winning = false;
-	console.log(this.isValidTurn(x,y));
+	//console.log(this.isValidTurn(x,y));
 	if(this.isValidTurn(x,y)){
 		var newState = {
 			activePlayer:(state.activePlayer == 'x') ?'o':'x'
 		};
 		valid = true;
 		newState.currentBoard = this.updatedBoard(x,y);
-		console.log(newState.currentBoard );
-		//newState.winningMove = winning this.isWinningTurn(state.activePlayer,newState.currentBoard);
+		//console.log(newState.currentBoard );
+		newState.winningMove = winning = this.isWinningTurn(state.activePlayer,newState.currentBoard);
 		this.state.push(newState);
 	}
+	return {
+		board:newState.currentBoard,
+		moveBy:state.activePlayer,
+		valid:valid,
+		winning:winning
+	}
+}
+
+TicTacToe.prototype.isWinningTurn= function(activePlayer,updatedBoard){
+	//console.log(activePlayer);
+	//console.log(updatedBoard);
+	var checkVertical = function(){
+		for(var i;i<3;i++)
+		{
+			if(updatedBoard[0][i]==activePlayer &&updatedBoard[1][i]==activePlayer &&updatedBoard[2][i]==activePlayer) 
+			{
+				return true;
+			}
+			else{
+				return false;
+			}
+		}
+	};
+	var checkHorizontal = function(){
+		for(var i;i<3;i++)
+		{
+			if(updatedBoard[i][0]==activePlayer &&updatedBoard[i][1]==activePlayer &&updatedBoard[i][2]==activePlayer) 
+			{
+				return true;
+			}
+			else{
+				return false;
+			}
+		}
+	};
+	var checkDiagonal = function(){
+		if(updatedBoard[0][0]==activePlayer &&updatedBoard[1][1]==activePlayer &&updatedBoard[2][2]==activePlayer) 
+		{
+			return true;
+		}
+		else if(updatedBoard[0][2]==activePlayer &&updatedBoard[1][1]==activePlayer &&updatedBoard[2][0]==activePlayer) {
+			return true;
+		}else
+		{
+			return false;
+		}
+	}
+	if(checkVertical() || checkHorizontal() ||checkDiagonal()){
+		return true;
+	}
+	return false;
 }
 
 var tictactoe = new TicTacToe();
 
-td_lists = document.getElementsByTagName("td"); //为每个td添加事件
+td_lists = document.getElementsByTagName("td"); 
+var div_game_undo = document.getElementById("game_undo");	
 for(var td_l = 0;td_l<td_lists.length;td_l++){
 	this.td_lists[td_l].onclick = function(e)
 	{
@@ -130,9 +191,25 @@ for(var td_l = 0;td_l<td_lists.length;td_l++){
 		//console.log(this_num);
 		var x = Math.floor((this_num-1)/3);
 		var y = (this_num-1)%3;
-		tictactoe.takeTurn(x,y);
+		var res = [];
+		res = tictactoe.takeTurn(x,y);
+		//console.log(res);
+		if(res.valid == true)
+		{
+			this.innerText =  res.moveBy;
+		}
+			
 	}
-}	
+}
+var div_game_undo = document.getElementById("game_undo");	
+div_game_undo.onclick = function(e){
+	tictactoe.undo();
+	
+}
+var div_game_reset = document.getElementById("game_reset");	
+div_game_reset.onclick = function(e){
+	tictactoe.init();
+}
 //tictactoe.init();
 </script>
 
